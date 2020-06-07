@@ -13,6 +13,11 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = DBHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "weekbook.db";
     private static final int DATABASE_VERSION = 1;
+
+    /**
+     * конструктор
+     * @param context
+     */
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }

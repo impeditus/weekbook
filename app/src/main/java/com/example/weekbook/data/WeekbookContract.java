@@ -6,7 +6,7 @@ public final class WeekbookContract {
     private WeekbookContract(){}
     //таблиця з записами
     public static final class RecordsEntry implements BaseColumns {
-        static final String TABLE_NAME = "records"; // назва таблиці в бд
+        public static final String TABLE_NAME = "records"; // назва таблиці в бд
         // назва стовбців
         public static final String COLUMN_ID = "_id";
         public static final String COLUMN_SHORT_TEXT = "shortText";
