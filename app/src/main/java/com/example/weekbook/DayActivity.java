@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,8 +29,10 @@ public class DayActivity extends AppCompatActivity {
 
    private TextView weekDayTextView;
    private EditText editText;
+   private EditText editTextMainTasks;
    private String FILENAME;
    private DBHelper myDBHelper;
+   private Long  recId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,10 +44,11 @@ public class DayActivity extends AppCompatActivity {
         FILENAME= getIntent().getStringExtra("weekDay")+".txt";
         FILENAME.replaceAll(" ", "");
         editText = (EditText)findViewById(R.id.editText);
-        openFile(FILENAME);
-        insertGuest();
+        editTextMainTasks=(EditText)findViewById(R.id.editTextMainTask);
+        //openFile(FILENAME);
+       // insertGuest();
         displayDatabaseInfo();
-        editText.addTextChangedListener ( new TextWatcher() {
+       /* editText.addTextChangedListener ( new TextWatcher() {
 
             public void afterTextChanged (Editable s ){
 
@@ -55,7 +59,14 @@ public class DayActivity extends AppCompatActivity {
 
             public void onTextChanged ( CharSequence s, int start, int before, int count ) {
             }
-        });
+        });*/
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        update(editTextMainTasks.getText().toString(),editText.getText().toString());
+
     }
 
     // Метод для відкиття файлу
@@ -100,6 +111,8 @@ public class DayActivity extends AppCompatActivity {
 
         // Зададим условие для выборки - список столбцов
         String[] projection = {
+                RecordsEntry._ID,
+                RecordsEntry.COLUMN_SHORT_TEXT,
                 RecordsEntry.COLUMN_ALL_TEXT};
         String selection = RecordsEntry.COLUMN_DATE + "=?";
         String[] selectionArgs = {getIntent().getStringExtra("weekDay")};
@@ -114,7 +127,12 @@ public class DayActivity extends AppCompatActivity {
                 null);                   // порядок сортировки
 
         TextView displayTextView = editText;
+        TextView displayTextView2 = editTextMainTasks;
+        if (cursor.getCount()==0) {
+            insert();
 
+
+        }
         try {
            /* displayTextView.setText("Таблица содержит " + cursor.getCount() + " гостей.\n\n");
             displayTextView.append(GuestEntry._ID + " - " +
@@ -124,7 +142,9 @@ public class DayActivity extends AppCompatActivity {
                     GuestEntry.COLUMN_AGE + "\n");
 */
             // Узнаем индекс каждого столбца
+            int idColumnIndex =cursor.getColumnIndex(RecordsEntry._ID);
             int All_Text_ColumnIndex = cursor.getColumnIndex(RecordsEntry.COLUMN_ALL_TEXT);
+            int Short_Text_ColumnIndex = cursor.getColumnIndex(RecordsEntry.COLUMN_SHORT_TEXT);
            /* int nameColumnIndex = cursor.getColumnIndex(GuestEntry.COLUMN_NAME);
             int cityColumnIndex = cursor.getColumnIndex(GuestEntry.COLUMN_CITY);
             int genderColumnIndex = cursor.getColumnIndex(GuestEntry.COLUMN_GENDER);
@@ -133,30 +153,45 @@ public class DayActivity extends AppCompatActivity {
             // Проходим через все ряды
             while (cursor.moveToNext()) {
                 // Используем индекс для получения строки или числа
-               // int currentID = cursor.getInt(idColumnIndex);
+                int currentID = cursor.getInt(idColumnIndex);
+                recId = (long)currentID;
                 String currentAllText = cursor.getString(All_Text_ColumnIndex);
+                String currentShortText = cursor.getString(Short_Text_ColumnIndex);
                 /*String currentCity = cursor.getString(cityColumnIndex);
                 int currentGender = cursor.getInt(genderColumnIndex);
                 int currentAge = cursor.getInt(ageColumnIndex);*/
                 // Выводим значения каждого столбца
-                displayTextView.append(currentAllText+ "\n");
+                displayTextView.setText(currentAllText);
+                displayTextView2.setText(currentShortText);
             }
         } finally {
             // Всегда закрываем курсор после чтения
             cursor.close();
         }
     }
-    private void insertGuest() {
+    private void insert( ) {
 
         // Gets the database in write mode
         SQLiteDatabase db = myDBHelper.getWritableDatabase();
         // Создаем объект ContentValues, где имена столбцов ключи,
         // а информация о госте является значениями ключей
         ContentValues values = new ContentValues();
-        values.put(RecordsEntry.COLUMN_ALL_TEXT, "Мурзик");
-        values.put(RecordsEntry.COLUMN_SHORT_TEXT, "Мурманск");
-        values.put(RecordsEntry.COLUMN_DATE,getIntent().getStringExtra("weekDay") );
+        values.put(RecordsEntry.COLUMN_DATE, getIntent().getStringExtra("weekDay") );
 
-        long newRowId = db.insert(RecordsEntry.TABLE_NAME, null, values);
+        recId = db.insert(RecordsEntry.TABLE_NAME, null, values);
+        Log.d("myLog", "inserted rows id = " + recId);
     }
+    private void update( String shortText, String allText) {
+
+        // Gets the database in write mode
+        SQLiteDatabase db = myDBHelper.getWritableDatabase();
+        String selection = RecordsEntry.COLUMN_ID + "=?";
+        String[] selectionArgs = new String[] {recId.toString()};
+        ContentValues values = new ContentValues();
+        values.put(RecordsEntry.COLUMN_SHORT_TEXT, shortText);
+        values.put(RecordsEntry.COLUMN_ALL_TEXT,allText);
+        long updCount= db.update(RecordsEntry.TABLE_NAME,values, selection,selectionArgs);
+        Log.d("myLog", "updated rows count = " + updCount);
+    }
+
 }

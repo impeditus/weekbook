@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">WeekBook</string>
+    <string-array name="weeksTitles">
+        <item>four weeks ago</item>
+        <item>three weeks ago</item>
+        <item>two weeks ago</item>
+        <item>last week</item>
+        <item>this week</item>
+        <item>next week</item>
+        <item>in a week</item>
+        <item>in 2 weeks</item>
+        <item>in 3 weeks</item>
+        <item>in 4 weeks</item>
+        <item>in 5 weeks</item>
+        <item>in 6 weeks</item>
+        <item>in 7 weeks</item>
+    </string-array>
 </resources>
